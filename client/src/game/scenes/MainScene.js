@@ -52,27 +52,26 @@ export default class MainScene extends Phaser.Scene {
   }
 
   // ---------- RESPONSIVE LAYOUT ----------
-  // El manifest define posiciones para 1320x720 (landscape). En portrait el canvas
-  // mide 720x1280, por lo tanto reescribimos las posiciones de UI para que el
-  // tablero quede centrado verticalmente y la HUD se acomode arriba/abajo.
+  // El manifest define posiciones para 1320x720 (landscape). En portrait el
+  // canvas mide 420x660 (mismo aspecto que el tablero), por lo que desplazamos
+  // TODAS las posiciones del layout por el mismo delta para que el tablero
+  // (y todo su HUD: precio, sonido, info, N° jugada) llene la pantalla
+  // manteniendo intacta la disposición relativa.
   _applyResponsiveLayout() {
     if (!IS_PORTRAIT) return;
-    const cx = GAME_WIDTH  / 2; // 360
-    const cy = GAME_HEIGHT / 2; // 640
     const lay = this.manifest.layout;
-    // tablero centrado en el canvas
-    lay.background = { x: cx, y: cy, scale: 1 };
-    lay.board      = { x: cx, y: cy, width: lay.board.width, height: lay.board.height };
-    // HUD arriba del tablero
-    const topY = cy - lay.board.height / 2 - 40; // ~270
-    lay.balance   = { x: cx - 120, y: topY };
-    lay.soundIcon = { x: cx + 120, y: topY };
-    // HUD debajo del tablero
-    const botY = cy + lay.board.height / 2 + 40; // ~1010
-    lay.playNumber = { x: cx,        y: botY };
-    lay.infoIcon   = { x: cx + 140,  y: botY };
-    // botón jugar al centro del tablero (mismo offset visual que landscape)
-    lay.playButton = { x: cx, y: cy + 30 };
+    const b = lay.board;
+    // Nueva posición del centro del tablero = centro del canvas portrait.
+    const dx = (GAME_WIDTH  / 2) - b.x;
+    const dy = (GAME_HEIGHT / 2) - b.y;
+    const shift = (p) => { if (p && typeof p.x === 'number') { p.x += dx; p.y += dy; } };
+    shift(lay.background);
+    shift(lay.board);
+    shift(lay.balance);
+    shift(lay.playNumber);
+    shift(lay.soundIcon);
+    shift(lay.infoIcon);
+    shift(lay.playButton);
   }
 
   // ---------- BUILDERS ----------

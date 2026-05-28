@@ -2,11 +2,13 @@ import Phaser from 'phaser';
 import BootScene from './scenes/BootScene.js';
 import MainScene from './scenes/MainScene.js';
 
-// Dimensiones base. En portrait usamos canvas vertical (720x1280) para que el
-// tablero llene la pantalla del móvil sin recortes. En landscape el original
-// (1320x720). La orientación se elige UNA SOLA VEZ al arrancar.
+// Dimensiones base. En landscape mantenemos el diseño original 1320x720. En
+// portrait reducimos el canvas al área del tablero (420x660, mismo ancho que
+// el tablero) y desplazamos todas las posiciones del layout para que el
+// tablero llene el 100% de la pantalla móvil sin cambiar las posiciones
+// relativas de precio/sonido/info/N° jugada respecto al tablero.
 const LANDSCAPE = { w: 1320, h: 720 };
-const PORTRAIT  = { w: 720,  h: 1280 };
+const PORTRAIT  = { w: 420,  h: 660 };
 
 const _isPortrait = typeof window !== 'undefined'
   && window.innerHeight > window.innerWidth;
