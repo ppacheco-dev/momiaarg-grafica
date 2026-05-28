@@ -62,11 +62,11 @@
   },
 
   "texts": {
-    "winTitle": "¡GANASTE!",
-    "loseTitle": "JUEGO SIN PREMIO",
-    "loseSubtitle": "INTÉNTALO NUEVAMENTE",
-    "continueButton": "SEGUIR JUGANDO",
-    "playButton": "JUGAR",
-    "playNumberLabel": "Número Jugada"
+    "winTitle": "¡PREMIADO!",
+    "loseTitle": "SIN PREMIO",
+    "loseSubtitle": "¡INTENTÁ DE NUEVO!",
+    "continueButton": "¡JUGÁ DE NUEVO!",
+    "playButton": "¡JUGÁ!",
+    "playNumberLabel": "N° DE JUGADA"
   }
 }

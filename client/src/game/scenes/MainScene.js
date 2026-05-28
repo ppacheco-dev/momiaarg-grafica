@@ -484,17 +484,20 @@ export default class MainScene extends Phaser.Scene {
           displayObj = tile.fallbackBg;
           tile.fallbackText.scaleX = 0;
         }
-        // Aplicar gris desde el momento en que aparece el símbolo.
-        if (displayObj?.postFX) displayObj.postFX.addColorMatrix().grayscale(1);
-        if (!textureOk && tile.fallbackText?.postFX)
-          tile.fallbackText.postFX.addColorMatrix().grayscale(1);
+        // El gris se aplica DESPUÉS de la animación para evitar que el
+        // shader de color matrix procese cada frame del tween (saturaba el pipeline WebGL).
         const targetScaleX = displayObj.scaleX;
         displayObj.scaleX = 0;
         this.tweens.add({
           targets: textureOk ? displayObj : [tile.fallbackBg, tile.fallbackText],
           scaleX: targetScaleX,
           duration: 120,
-          onComplete: onDone
+          onComplete: () => {
+            if (displayObj?.postFX) displayObj.postFX.addColorMatrix().grayscale(1);
+            if (!textureOk && tile.fallbackText?.postFX)
+              tile.fallbackText.postFX.addColorMatrix().grayscale(1);
+            onDone();
+          }
         });
       }
     });
