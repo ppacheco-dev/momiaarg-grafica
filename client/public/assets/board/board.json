@@ -1,0 +1,18 @@
+{
+  "frames": {
+    "0": {
+      "frame": { "x": 0, "y": 2, "w": 574, "h": 880 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 2, "w": 574, "h": 880 },
+      "sourceSize": { "w": 574, "h": 880 }
+    }
+  },
+  "meta": {
+    "app": "momia",
+    "image": "board.webp",
+    "format": "RGBA8888",
+    "size": { "w": 574, "h": 880 },
+    "scale": "1"
+  }
+}

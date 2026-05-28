@@ -1,0 +1,60 @@
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* Fondo del juego ocupando el 100% de la pantalla, independiente de la resolución.
+   - Capa 1 (encima): imagen real de fondo (`background.webp`/`.png`). Si no existe,
+     el navegador la ignora y se ve la capa 2.
+   - Capa 2 (fallback): cielo púrpura con glow y estrellas SVG, para que mientras no
+     haya asset real el fondo igual ocupe toda la pantalla.
+   Tanto Phaser (dentro del canvas) como el body (fuera del canvas) muestran la misma
+   imagen → en escritorio con FIT las bandas laterales continúan visualmente el fondo. */
+body {
+  background-color: #1a0a3a;
+  background-image:
+    radial-gradient(ellipse 60% 50% at 30% 40%, rgba(153,102,204,0.30), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 70% 70%, rgba(153,102,204,0.22), transparent 65%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'>\
+<circle cx='23' cy='17' r='1.1' fill='white' opacity='0.85'/>\
+<circle cx='58' cy='92' r='0.8' fill='white' opacity='0.7'/>\
+<circle cx='110' cy='34' r='1.4' fill='white' opacity='0.9'/>\
+<circle cx='165' cy='118' r='0.9' fill='white' opacity='0.6'/>\
+<circle cx='205' cy='52' r='1.2' fill='white' opacity='0.85'/>\
+<circle cx='250' cy='13' r='0.7' fill='white' opacity='0.65'/>\
+<circle cx='295' cy='80' r='1.3' fill='white' opacity='0.9'/>\
+<circle cx='340' cy='40' r='0.9' fill='white' opacity='0.7'/>\
+<circle cx='378' cy='105' r='1.1' fill='white' opacity='0.85'/>\
+<circle cx='15' cy='150' r='1.3' fill='white' opacity='0.85'/>\
+<circle cx='80' cy='200' r='0.8' fill='white' opacity='0.55'/>\
+<circle cx='135' cy='175' r='1.1' fill='white' opacity='0.9'/>\
+<circle cx='190' cy='240' r='0.9' fill='white' opacity='0.75'/>\
+<circle cx='245' cy='185' r='1.2' fill='white' opacity='0.85'/>\
+<circle cx='300' cy='220' r='0.7' fill='white' opacity='0.55'/>\
+<circle cx='355' cy='260' r='1.3' fill='white' opacity='0.9'/>\
+<circle cx='30' cy='290' r='1.0' fill='white' opacity='0.7'/>\
+<circle cx='95' cy='340' r='0.8' fill='white' opacity='0.6'/>\
+<circle cx='150' cy='305' r='1.4' fill='white' opacity='0.9'/>\
+<circle cx='220' cy='360' r='1.0' fill='white' opacity='0.75'/>\
+<circle cx='270' cy='330' r='1.2' fill='white' opacity='0.85'/>\
+<circle cx='325' cy='380' r='0.9' fill='white' opacity='0.7'/>\
+<circle cx='385' cy='320' r='1.1' fill='white' opacity='0.8'/>\
+</svg>");
+  background-repeat: no-repeat, no-repeat, repeat;
+  background-attachment: fixed, fixed, fixed;
+  background-size: 100% 100%, 100% 100%, 400px 400px;
+}
+
+/* El contenedor ocupa toda la pantalla y oculta lo que desborda en móvil portrait */
+.game-container {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Phaser (ENVELOP) maneja el tamaño del canvas — no sobreescribir */

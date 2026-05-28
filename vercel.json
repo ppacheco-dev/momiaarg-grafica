@@ -1,0 +1,8 @@
+{
+  "buildCommand": "npm install && npm --workspace client run build",
+  "outputDirectory": "client/dist",
+  "framework": null,
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" }
+  ]
+}
