@@ -414,13 +414,30 @@ export default class MainScene extends Phaser.Scene {
           duration: 150,
           onComplete: () => {
             this.revealedCount++;
-            if (this.revealedCount === this.tiles.length) {
+            const allDone = this.revealedCount === this.tiles.length;
+            if (allDone || this._isOutcomeDetermined()) {
               this.time.delayedCall(400, () => this.showResult());
             }
           }
         });
       }
     });
+  }
+
+  // Detecta si con las fichas ya reveladas el resultado ya está determinado.
+  _isOutcomeDetermined() {
+    const deathId    = this.manifest.death?.id;
+    const wildcardId = this.manifest.wildcard?.id;
+    const counts = {};
+    for (const t of this.tiles) {
+      if (t.revealed && t.symbolId) counts[t.symbolId] = (counts[t.symbolId] || 0) + 1;
+    }
+    if ((counts[deathId] || 0) >= 2) return true;
+    const wilds = counts[wildcardId] || 0;
+    for (const sym of this.manifest.symbols) {
+      if ((counts[sym.id] || 0) + wilds >= 3) return true;
+    }
+    return false;
   }
 
   showResult() {
@@ -439,11 +456,19 @@ export default class MainScene extends Phaser.Scene {
       this.prizeText.setVisible(false);
     }
 
-    // Poner en gris las fichas que no forman parte del resultado ganador.
+    // Poner en gris las fichas que no forman parte del resultado ganador,
+    // incluyendo las que no se llegaron a dar vuelta (quedan con el reverso gris).
     // En WIN: quedan a color las que tienen el símbolo ganador o el comodín.
-    // En LOSE / NONE: todas grises.
+    // En LOSE / NONE: todas las reveladas van grises; las no reveladas también.
     const wildcardId = this.manifest.wildcard?.id;
     for (const t of this.tiles) {
+      if (!t.revealed) {
+        // Ficha no dada vuelta: bloquear y poner reverso en gris.
+        t.back.disableInteractive();
+        if (t.back?.postFX)  t.back.postFX.addColorMatrix().grayscale(1);
+        if (t.label?.postFX) t.label.postFX.addColorMatrix().grayscale(1);
+        continue;
+      }
       const isWinner = outcome === 'win' &&
         (t.symbolId === winningSymbol || t.symbolId === wildcardId);
       if (!isWinner) {
@@ -472,7 +497,9 @@ export default class MainScene extends Phaser.Scene {
       t.back.setVisible(true).setScale(1).setAlpha(1).setDisplaySize(t.size, t.size);
       t.back.setInteractive({ useHandCursor: true });
       t.label.setVisible(true);
-      // Limpiar efecto gris del ciclo anterior.
+      // Limpiar efecto gris del ciclo anterior (reveladas y no reveladas).
+      if (t.back?.postFX)        t.back.postFX.clear();
+      if (t.label?.postFX)       t.label.postFX.clear();
       if (t.symbol?.postFX)      t.symbol.postFX.clear();
       if (t.fallbackBg?.postFX)  t.fallbackBg.postFX.clear();
       if (t.fallbackText?.postFX) t.fallbackText.postFX.clear();
