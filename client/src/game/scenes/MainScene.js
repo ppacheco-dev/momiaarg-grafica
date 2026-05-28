@@ -414,11 +414,86 @@ export default class MainScene extends Phaser.Scene {
           duration: 150,
           onComplete: () => {
             this.revealedCount++;
-            const allDone = this.revealedCount === this.tiles.length;
-            if (allDone || this._isOutcomeDetermined()) {
+            if (this._isOutcomeDetermined()) {
+              this._flipRemainingAndShowResult();
+            } else if (this.revealedCount === this.tiles.length) {
               this.time.delayedCall(400, () => this.showResult());
             }
           }
+        });
+      }
+    });
+  }
+
+  // Cuando el resultado está determinado: da vuelta el resto de las fichas
+  // en cascada (con animación) mostrándolas en gris, y luego muestra el resultado.
+  _flipRemainingAndShowResult() {
+    const remaining = this.tiles.filter(t => !t.revealed);
+    if (remaining.length === 0) {
+      this.time.delayedCall(400, () => this.showResult());
+      return;
+    }
+    // Marcar todas como reveladas de inmediato para bloquear clicks durante la animación.
+    for (const t of remaining) {
+      t.revealed = true;
+      t.back.disableInteractive();
+    }
+    let done = 0;
+    remaining.forEach((tile, i) => {
+      this.time.delayedCall(i * 80, () => {
+        this._autoFlipTile(tile, () => {
+          done++;
+          if (done === remaining.length) {
+            this.time.delayedCall(400, () => this.showResult());
+          }
+        });
+      });
+    });
+  }
+
+  // Voltea una ficha automáticamente (misma animación que el click manual)
+  // y aplica gris al símbolo revelado.
+  _autoFlipTile(tile, onDone) {
+    let symbolId = this.currentPlay.tiles[tile.index];
+    if (!symbolId) {
+      const ids = Object.keys(this.symbolMap);
+      symbolId = ids[Math.floor(Math.random() * ids.length)];
+    }
+    const ref = this.symbolMap[symbolId] || { key: 'tileBack', frame: null };
+    tile.symbolId = symbolId;
+    tile.label.setVisible(false);
+    this.tweens.add({
+      targets: tile.back,
+      scaleX: 0,
+      duration: 120,
+      onComplete: () => {
+        tile.back.setVisible(false);
+        const textureOk = this.textures.exists(ref.key) && ref.key !== '__MISSING';
+        let displayObj;
+        if (textureOk) {
+          if (ref.frame) tile.symbol.setTexture(ref.key, ref.frame);
+          else tile.symbol.setTexture(ref.key);
+          tile.symbol.setDisplaySize(tile.size, tile.size);
+          tile.symbol.setVisible(true);
+          displayObj = tile.symbol;
+        } else {
+          tile.fallbackText.setText(String(symbolId));
+          tile.fallbackBg.setVisible(true);
+          tile.fallbackText.setVisible(true);
+          displayObj = tile.fallbackBg;
+          tile.fallbackText.scaleX = 0;
+        }
+        // Aplicar gris desde el momento en que aparece el símbolo.
+        if (displayObj?.postFX) displayObj.postFX.addColorMatrix().grayscale(1);
+        if (!textureOk && tile.fallbackText?.postFX)
+          tile.fallbackText.postFX.addColorMatrix().grayscale(1);
+        const targetScaleX = displayObj.scaleX;
+        displayObj.scaleX = 0;
+        this.tweens.add({
+          targets: textureOk ? displayObj : [tile.fallbackBg, tile.fallbackText],
+          scaleX: targetScaleX,
+          duration: 120,
+          onComplete: onDone
         });
       }
     });
@@ -456,25 +531,18 @@ export default class MainScene extends Phaser.Scene {
       this.prizeText.setVisible(false);
     }
 
-    // Poner en gris las fichas que no forman parte del resultado ganador,
-    // incluyendo las que no se llegaron a dar vuelta (quedan con el reverso gris).
-    // En WIN: quedan a color las que tienen el símbolo ganador o el comodín.
-    // En LOSE / NONE: todas las reveladas van grises; las no reveladas también.
+    // Todas las fichas están ya reveladas cuando llegamos aquí (las pendientes
+    // se dieron vuelta automáticamente en _flipRemainingAndShowResult con gris ya aplicado).
+    // Solo aplicamos gris a las reveladas manualmente que no son ganadoras.
     const wildcardId = this.manifest.wildcard?.id;
     for (const t of this.tiles) {
-      if (!t.revealed) {
-        // Ficha no dada vuelta: bloquear y poner reverso en gris.
-        t.back.disableInteractive();
-        if (t.back?.postFX)  t.back.postFX.addColorMatrix().grayscale(1);
-        if (t.label?.postFX) t.label.postFX.addColorMatrix().grayscale(1);
-        continue;
-      }
       const isWinner = outcome === 'win' &&
         (t.symbolId === winningSymbol || t.symbolId === wildcardId);
       if (!isWinner) {
         const obj = t.symbol.visible ? t.symbol : t.fallbackBg;
-        if (obj?.postFX) obj.postFX.addColorMatrix().grayscale(1);
-        if (t.fallbackText?.postFX) t.fallbackText.postFX.addColorMatrix().grayscale(1);
+        // postFX.clear() para no apilar efectos si ya tenía gris del auto-flip.
+        if (obj?.postFX) { obj.postFX.clear(); obj.postFX.addColorMatrix().grayscale(1); }
+        if (t.fallbackText?.postFX) { t.fallbackText.postFX.clear(); t.fallbackText.postFX.addColorMatrix().grayscale(1); }
       }
     }
 
