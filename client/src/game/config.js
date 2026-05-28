@@ -27,7 +27,9 @@ export function createGameConfig(parent) {
     backgroundColor: '#1a0a3a',
     scale: {
       mode: Phaser.Scale.FIT,
-      autoCenter: Phaser.Scale.CENTER_BOTH
+      autoCenter: IS_PORTRAIT
+        ? Phaser.Scale.CENTER_HORIZONTALLY
+        : Phaser.Scale.CENTER_BOTH
     },
     scene: [BootScene, MainScene]
   };
