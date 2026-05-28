@@ -532,14 +532,8 @@ export default class MainScene extends Phaser.Scene {
       this.prizeText.setVisible(false);
     }
 
-    // Solo se ponen en gris las fichas que el juego dio vuelta automáticamente
-    // (las que el jugador tocó quedan con su color original).
-    for (const t of this.tiles) {
-      if (!t.autoFlipped) continue;
-      const obj = t.symbol.visible ? t.symbol : t.fallbackBg;
-      if (obj?.postFX) { obj.postFX.clear(); obj.postFX.addColorMatrix().grayscale(1); }
-      if (t.fallbackText?.postFX) { t.fallbackText.postFX.clear(); t.fallbackText.postFX.addColorMatrix().grayscale(1); }
-    }
+    // El gris ya fue aplicado en _autoFlipTile al momento de revelar cada ficha.
+    // No re-aplicar aquí para evitar el parpadeo causado por postFX.clear().
 
     this.overlay.setScale(0).setVisible(true);
     this.continueButton.setInteractive({ useHandCursor: true });
