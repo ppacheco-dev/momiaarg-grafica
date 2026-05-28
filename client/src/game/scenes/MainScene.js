@@ -670,83 +670,78 @@ export default class MainScene extends Phaser.Scene {
     this.infoOpen = true;
 
     const cx = GAME_WIDTH / 2, cy = GAME_HEIGHT / 2;
-
-    // Modal responsivo: en móvil (ENVELOP) usamos un card angosto que entra dentro de
-    // la franja visible (~420px del tablero). En escritorio (FIT) se ve todo el canvas,
-    // así que podemos hacer el card más ancho. Misma altura: cabe en ambos.
     const isPortrait = typeof window !== 'undefined' && window.innerHeight > window.innerWidth;
-    const cardW = isPortrait ? 380 : 520;
-    const cardH = isPortrait ? 420 : 360;
-    const titleSize = isPortrait ? 18 : 20;
-    const itemFont  = isPortrait ? 14 : 16;
-    const itemH     = isPortrait ? 50 : 42;
+    const cardW     = isPortrait ? 380 : 520;
+    const cardH     = isPortrait ? 480 : 440;
+    const titleSize = isPortrait ? 17 : 19;
+    const descFont  = isPortrait ? 13 : 15;
     const btnW      = isPortrait ? 180 : 160;
-    const itemPadX  = 22;
-    const itemLeftPad = isPortrait ? 22 : 28;
+    const headerH   = 48;
+    const imgW      = cardW - 40;
+    const imgH      = isPortrait ? 210 : 230;
 
-    // Capa: dim semi-transparente sobre toda la escena
+    // Dim
     const dim = this.add.rectangle(cx, cy, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.65)
-      .setInteractive();
-    dim.setDepth(1000);
+      .setInteractive().setDepth(1000);
 
-    // Card principal (con sombra simulada por un rectángulo desplazado detrás)
-    const shadow = this.add.rectangle(cx + 6, cy + 8, cardW, cardH, 0x000000, 0.45)
-      .setDepth(1001);
-    const card = this.add.rectangle(cx, cy, cardW, cardH, 0x1c1330)
-      .setStrokeStyle(2, 0xffd166)
-      .setDepth(1002);
+    // Card
+    const shadow = this.add.rectangle(cx + 6, cy + 8, cardW, cardH, 0x000000, 0.45).setDepth(1001);
+    const card   = this.add.rectangle(cx, cy, cardW, cardH, 0x1c1330)
+      .setStrokeStyle(2, 0xffd166).setDepth(1002);
 
-    // Barra superior dorada (header)
-    const headerH = 48;
-    const header = this.add.rectangle(cx, cy - cardH / 2 + headerH / 2, cardW, headerH, 0xffd166)
-      .setDepth(1003);
-    const title = this.add.text(cx, cy - cardH / 2 + headerH / 2, '¿Cómo se juega?', {
+    // Header dorado
+    const header = this.add.rectangle(cx, cy - cardH / 2 + headerH / 2, cardW, headerH, 0xffd166).setDepth(1003);
+    const title  = this.add.text(cx, cy - cardH / 2 + headerH / 2, 'Instrucciones de Juego', {
       fontFamily: 'Arial Black', fontSize: titleSize, color: '#1c1330'
     }).setOrigin(0.5).setDepth(1004);
+    const accent = this.add.rectangle(cx, cy - cardH / 2 + headerH + 1, cardW, 2, 0xff7a59).setDepth(1003);
 
-    // Línea acento debajo del header
-    const accent = this.add.rectangle(cx, cy - cardH / 2 + headerH + 1, cardW, 2, 0xff7a59)
-      .setDepth(1003);
+    // Descripción
+    const descY = cy - cardH / 2 + headerH + 22;
+    const desc = this.add.text(cx, descY, 'Destapá las casillas y encontrá 3 figuras iguales para ganar. ¡El Comodín te ayuda y La Muerte te detiene!', {
+      fontFamily: 'Arial', fontSize: descFont, color: '#f0eaff',
+      wordWrap: { width: cardW - 40 }, align: 'center'
+    }).setOrigin(0.5, 0).setDepth(1003);
 
-    // Contenido: viñetas con íconos circulares de color
-    const items = [
-      { color: 0x66ccff, text: 'Tocá las 12 casillas para revelarlas.' },
-      { color: 0x66e6a3, text: '3 símbolos iguales = ganaste el premio.' },
-      { color: 0xff7a59, text: '2 figuras de "La Muerte" = perdiste.' },
-      { color: 0xffd166, text: 'El Comodín reemplaza a cualquier símbolo.' }
-    ];
-    const itemsTop = cy - cardH / 2 + headerH + 28;
-    const itemX = cx - cardW / 2 + itemLeftPad;
-    const items_objs = [];
-    items.forEach((it, i) => {
-      const y = itemsTop + i * itemH;
-      const dot = this.add.circle(itemX, y, 7, it.color).setStrokeStyle(2, 0xffffff).setDepth(1003);
-      const tx = this.add.text(itemX + itemPadX, y, it.text, {
-        fontFamily: 'Arial', fontSize: itemFont, color: '#f0eaff',
-        wordWrap: { width: cardW - itemLeftPad * 2 - itemPadX }
-      }).setOrigin(0, 0.5).setDepth(1003);
-      items_objs.push(dot, tx);
-    });
+    // Imagen de equivalencias
+    const imgY = descY + desc.height + 16 + imgH / 2;
+    const infoTableKey = 'infoTable';
+    const missingImages = this.registry.get('missingImages') || new Set();
+    let imgObj;
+    if (this.textures.exists(infoTableKey) && !missingImages.has(infoTableKey)) {
+      imgObj = this.add.image(cx, imgY, infoTableKey)
+        .setDisplaySize(imgW, imgH).setDepth(1003);
+    } else {
+      // Placeholder estilizado mientras no hay imagen
+      const ph = this.add.rectangle(cx, imgY, imgW, imgH, 0x2a1f4a)
+        .setStrokeStyle(2, 0xffd166).setDepth(1003);
+      const phTxt = this.add.text(cx, imgY, 'Tabla de equivalencias\n(imagen a colocar)', {
+        fontFamily: 'Arial', fontSize: 13, color: '#ffd166', align: 'center'
+      }).setOrigin(0.5).setDepth(1004);
+      imgObj = [ph, phTxt];
+    }
 
-    // Botón cerrar (pill inferior)
+    // Botón cerrar
     const btnY = cy + cardH / 2 - 36;
-    const btn = this.add.rectangle(cx, btnY, btnW, 40, 0xff7a59)
-      .setStrokeStyle(2, 0xffd166).setDepth(1003)
-      .setInteractive({ useHandCursor: true });
+    const btn    = this.add.rectangle(cx, btnY, btnW, 40, 0xff7a59)
+      .setStrokeStyle(2, 0xffd166).setDepth(1003).setInteractive({ useHandCursor: true });
     const btnTxt = this.add.text(cx, btnY, 'ENTENDIDO', {
       fontFamily: 'Arial Black', fontSize: 14, color: '#ffffff',
       stroke: '#000000', strokeThickness: 2
     }).setOrigin(0.5).setDepth(1004);
 
-    // Animación de entrada: scale-in con bounce
-    const group = [dim, shadow, card, header, title, accent, ...items_objs, btn, btnTxt];
-    card.setScale(0.7); shadow.setScale(0.7); header.setScale(0.7); title.setScale(0.7);
-    accent.setScale(0.7); btn.setScale(0.7); btnTxt.setScale(0.7);
-    items_objs.forEach(o => o.setScale(0.7));
+    const extras = Array.isArray(imgObj) ? imgObj : [imgObj];
+    const group  = [dim, shadow, card, header, title, accent, desc, ...extras, btn, btnTxt];
+
+    // Animación de entrada
+    card.setScale(0.7); shadow.setScale(0.7); header.setScale(0.7);
+    title.setScale(0.7); accent.setScale(0.7); desc.setScale(0.7);
+    btn.setScale(0.7); btnTxt.setScale(0.7);
+    extras.forEach(o => o.setScale(0.7));
     dim.alpha = 0;
     this.tweens.add({ targets: dim, alpha: 1, duration: 200 });
     this.tweens.add({
-      targets: [card, shadow, header, title, accent, btn, btnTxt, ...items_objs],
+      targets: [card, shadow, header, title, accent, desc, btn, btnTxt, ...extras],
       scale: 1, duration: 300, ease: 'Back.Out'
     });
 

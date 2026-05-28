@@ -25,7 +25,8 @@
     "soundOff":       "assets/ui/sound-off.png",
     "info":           "assets/ui/info.png",
     "winFrame":       "assets/messages/win-frame.png",
-    "loseFrame":      "assets/messages/lose-frame.png"
+    "loseFrame":       "assets/messages/lose-frame.png",
+    "infoTable":       "assets/ui/info-table.png"
   },
 
   "atlas": {
