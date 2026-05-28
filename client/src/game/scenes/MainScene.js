@@ -560,7 +560,7 @@ export default class MainScene extends Phaser.Scene {
     // Modal responsivo: en móvil (ENVELOP) usamos un card angosto que entra dentro de
     // la franja visible (~420px del tablero). En escritorio (FIT) se ve todo el canvas,
     // así que podemos hacer el card más ancho. Misma altura: cabe en ambos.
-    const isPortrait = this.scale.scaleMode === Phaser.Scale.ENVELOP;
+    const isPortrait = typeof window !== 'undefined' && window.innerHeight > window.innerWidth;
     const cardW = isPortrait ? 380 : 520;
     const cardH = isPortrait ? 420 : 360;
     const titleSize = isPortrait ? 18 : 20;

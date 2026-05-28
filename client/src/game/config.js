@@ -16,11 +16,10 @@ export function createGameConfig(parent) {
   //   (cortando "Tablero" y "N° Jugada"), así que usamos FIT para que el tablero
   //   completo siempre sea visible. Las bandas laterales son del mismo púrpura del
   //   fondo (definido en CSS + backgroundColor) así que se ven como continuación del cielo.
-  const w = (typeof window !== 'undefined' && window.innerWidth)  || GAME_WIDTH;
-  const h = (typeof window !== 'undefined' && window.innerHeight) || GAME_HEIGHT;
-  const screenRatio = w / h;
-  const gameRatio = GAME_WIDTH / GAME_HEIGHT;
-  const mode = screenRatio < gameRatio ? Phaser.Scale.ENVELOP : Phaser.Scale.FIT;
+  // Siempre FIT: garantiza que el canvas completo (1320x720) sea visible sin recortes,
+  // tanto en desktop como en móvil portrait. En portrait quedan bandas arriba/abajo
+  // con el color de fondo; rotando el teléfono se aprovecha toda la pantalla.
+  const mode = Phaser.Scale.FIT;
 
   return {
     type: Phaser.AUTO,
