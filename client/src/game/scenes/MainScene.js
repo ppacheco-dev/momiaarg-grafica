@@ -436,6 +436,7 @@ export default class MainScene extends Phaser.Scene {
     // Marcar todas como reveladas de inmediato para bloquear clicks durante la animación.
     for (const t of remaining) {
       t.revealed = true;
+      t.autoFlipped = true;
       t.back.disableInteractive();
     }
     let done = 0;
@@ -531,19 +532,13 @@ export default class MainScene extends Phaser.Scene {
       this.prizeText.setVisible(false);
     }
 
-    // Todas las fichas están ya reveladas cuando llegamos aquí (las pendientes
-    // se dieron vuelta automáticamente en _flipRemainingAndShowResult con gris ya aplicado).
-    // Solo aplicamos gris a las reveladas manualmente que no son ganadoras.
-    const wildcardId = this.manifest.wildcard?.id;
+    // Solo se ponen en gris las fichas que el juego dio vuelta automáticamente
+    // (las que el jugador tocó quedan con su color original).
     for (const t of this.tiles) {
-      const isWinner = outcome === 'win' &&
-        (t.symbolId === winningSymbol || t.symbolId === wildcardId);
-      if (!isWinner) {
-        const obj = t.symbol.visible ? t.symbol : t.fallbackBg;
-        // postFX.clear() para no apilar efectos si ya tenía gris del auto-flip.
-        if (obj?.postFX) { obj.postFX.clear(); obj.postFX.addColorMatrix().grayscale(1); }
-        if (t.fallbackText?.postFX) { t.fallbackText.postFX.clear(); t.fallbackText.postFX.addColorMatrix().grayscale(1); }
-      }
+      if (!t.autoFlipped) continue;
+      const obj = t.symbol.visible ? t.symbol : t.fallbackBg;
+      if (obj?.postFX) { obj.postFX.clear(); obj.postFX.addColorMatrix().grayscale(1); }
+      if (t.fallbackText?.postFX) { t.fallbackText.postFX.clear(); t.fallbackText.postFX.addColorMatrix().grayscale(1); }
     }
 
     this.overlay.setScale(0).setVisible(true);
@@ -559,6 +554,7 @@ export default class MainScene extends Phaser.Scene {
     for (const t of this.tiles) {
       t.revealed = false;
       t.symbolId = null;
+      t.autoFlipped = false;
       t.symbol.setVisible(false);
       if (t.fallbackBg)   { t.fallbackBg.setVisible(false).setScale(1); }
       if (t.fallbackText) { t.fallbackText.setVisible(false).setScale(1); }
