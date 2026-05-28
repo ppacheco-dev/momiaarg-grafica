@@ -424,7 +424,7 @@ export default class MainScene extends Phaser.Scene {
   }
 
   showResult() {
-    const { outcome, prize } = this.currentPlay;
+    const { outcome, prize, winningSymbol } = this.currentPlay;
     if (outcome === 'win') {
       this.balance += prize;
       this.updateBalance();
@@ -438,6 +438,21 @@ export default class MainScene extends Phaser.Scene {
       this.prizeBox.setVisible(false);
       this.prizeText.setVisible(false);
     }
+
+    // Poner en gris las fichas que no forman parte del resultado ganador.
+    // En WIN: quedan a color las que tienen el símbolo ganador o el comodín.
+    // En LOSE / NONE: todas grises.
+    const wildcardId = this.manifest.wildcard?.id;
+    for (const t of this.tiles) {
+      const isWinner = outcome === 'win' &&
+        (t.symbolId === winningSymbol || t.symbolId === wildcardId);
+      if (!isWinner) {
+        const obj = t.symbol.visible ? t.symbol : t.fallbackBg;
+        if (obj?.postFX) obj.postFX.addColorMatrix().grayscale(1);
+        if (t.fallbackText?.postFX) t.fallbackText.postFX.addColorMatrix().grayscale(1);
+      }
+    }
+
     this.overlay.setScale(0).setVisible(true);
     this.continueButton.setInteractive({ useHandCursor: true });
     this.tweens.add({ targets: this.overlay, scale: 1, duration: 300, ease: 'Back.Out' });
@@ -457,6 +472,10 @@ export default class MainScene extends Phaser.Scene {
       t.back.setVisible(true).setScale(1).setAlpha(1).setDisplaySize(t.size, t.size);
       t.back.setInteractive({ useHandCursor: true });
       t.label.setVisible(true);
+      // Limpiar efecto gris del ciclo anterior.
+      if (t.symbol?.postFX)      t.symbol.postFX.clear();
+      if (t.fallbackBg?.postFX)  t.fallbackBg.postFX.clear();
+      if (t.fallbackText?.postFX) t.fallbackText.postFX.clear();
     }
     if (showPlayBtn) {
       const pbLay = this.manifest.layout.playButton;
