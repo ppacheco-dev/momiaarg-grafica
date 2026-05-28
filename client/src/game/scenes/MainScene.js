@@ -439,17 +439,10 @@ export default class MainScene extends Phaser.Scene {
       t.autoFlipped = true;
       t.back.disableInteractive();
     }
-    let done = 0;
-    remaining.forEach((tile, i) => {
-      this.time.delayedCall(i * 80, () => {
-        this._autoFlipTile(tile, () => {
-          done++;
-          if (done === remaining.length) {
-            this.time.delayedCall(400, () => this.showResult());
-          }
-        });
-      });
-    });
+    for (const tile of remaining) {
+      this._autoFlipTile(tile, () => {});
+    }
+    this.time.delayedCall(400, () => this.showResult());
   }
 
   // Muestra la ficha en gris instantáneamente, sin animación.
