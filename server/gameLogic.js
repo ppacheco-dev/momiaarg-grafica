@@ -100,8 +100,11 @@ function generateForced(forced, catalog) {
     for (let j = 0; j < GRID_SIZE; j++) tiles.push(pickWeighted(pool).id);
     if (evaluate(tiles, catalog).outcome === 'none') return tiles;
   }
-  // fallback: forzar sin premio mezclando símbolos únicos
-  return shuffle(catalog.symbols.slice(0, GRID_SIZE).map(s => s.id));
+  // fallback: generar 12 símbolos al azar sin garantizar 'none' (mejor que devolver
+  // menos de 12 tiles, que rompía el render del tablero mostrando "?").
+  const tilesFallback = [];
+  for (let j = 0; j < GRID_SIZE; j++) tilesFallback.push(pickWeighted(pool).id);
+  return tilesFallback;
 }
 
 export function generatePlay(catalog) {

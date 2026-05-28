@@ -366,7 +366,13 @@ export default class MainScene extends Phaser.Scene {
 
   onTileClicked(tile) {
     if (!this.currentPlay || tile.revealed || this.busy) return;
-    const symbolId = this.currentPlay.tiles[tile.index];
+    let symbolId = this.currentPlay.tiles[tile.index];
+    // Salvavidas: si el server devolvió menos de 12 tiles o un valor vacío,
+    // generamos uno aleatorio del catálogo en vez de mostrar "?".
+    if (!symbolId) {
+      const ids = Object.keys(this.symbolMap);
+      symbolId = ids[Math.floor(Math.random() * ids.length)];
+    }
     const ref = this.symbolMap[symbolId] || { key: 'tileBack', frame: null };
     tile.symbolId = symbolId;
     tile.revealed = true;
