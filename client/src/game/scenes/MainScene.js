@@ -452,8 +452,7 @@ export default class MainScene extends Phaser.Scene {
     });
   }
 
-  // Voltea una ficha automáticamente (misma animación que el click manual)
-  // y aplica gris al símbolo revelado.
+  // Muestra la ficha en gris instantáneamente, sin animación.
   _autoFlipTile(tile, onDone) {
     let symbolId = this.currentPlay.tiles[tile.index];
     if (!symbolId) {
@@ -463,44 +462,26 @@ export default class MainScene extends Phaser.Scene {
     const ref = this.symbolMap[symbolId] || { key: 'tileBack', frame: null };
     tile.symbolId = symbolId;
     tile.label.setVisible(false);
-    this.tweens.add({
-      targets: tile.back,
-      scaleX: 0,
-      duration: 120,
-      onComplete: () => {
-        tile.back.setVisible(false);
-        const textureOk = this.textures.exists(ref.key) && ref.key !== '__MISSING';
-        let displayObj;
-        if (textureOk) {
-          if (ref.frame) tile.symbol.setTexture(ref.key, ref.frame);
-          else tile.symbol.setTexture(ref.key);
-          tile.symbol.setDisplaySize(tile.size, tile.size);
-          tile.symbol.setVisible(true);
-          displayObj = tile.symbol;
-        } else {
-          tile.fallbackText.setText(String(symbolId));
-          tile.fallbackBg.setVisible(true);
-          tile.fallbackText.setVisible(true);
-          displayObj = tile.fallbackBg;
-          tile.fallbackText.scaleX = 0;
-        }
-        // El gris se aplica DESPUÉS de la animación para evitar que el
-        // shader de color matrix procese cada frame del tween (saturaba el pipeline WebGL).
-        const targetScaleX = displayObj.scaleX;
-        displayObj.scaleX = 0;
-        this.tweens.add({
-          targets: textureOk ? displayObj : [tile.fallbackBg, tile.fallbackText],
-          scaleX: targetScaleX,
-          duration: 120,
-          onComplete: () => {
-            if (displayObj?.postFX) displayObj.postFX.addColorMatrix().grayscale(1);
-            if (!textureOk && tile.fallbackText?.postFX)
-              tile.fallbackText.postFX.addColorMatrix().grayscale(1);
-            onDone();
-          }
-        });
-      }
-    });
+    tile.back.setVisible(false);
+
+    const textureOk = this.textures.exists(ref.key) && ref.key !== '__MISSING';
+    let displayObj;
+    if (textureOk) {
+      if (ref.frame) tile.symbol.setTexture(ref.key, ref.frame);
+      else tile.symbol.setTexture(ref.key);
+      tile.symbol.setDisplaySize(tile.size, tile.size);
+      tile.symbol.setVisible(true);
+      displayObj = tile.symbol;
+    } else {
+      tile.fallbackText.setText(String(symbolId));
+      tile.fallbackBg.setVisible(true);
+      tile.fallbackText.setVisible(true);
+      displayObj = tile.fallbackBg;
+    }
+    if (displayObj?.postFX) displayObj.postFX.addColorMatrix().grayscale(1);
+    if (!textureOk && tile.fallbackText?.postFX)
+      tile.fallbackText.postFX.addColorMatrix().grayscale(1);
+    onDone();
   }
 
   // Detecta si con las fichas ya reveladas el resultado ya está determinado.
