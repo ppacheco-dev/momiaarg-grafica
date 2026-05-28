@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, GAME_HEIGHT } from '../config.js';
+import { GAME_WIDTH, GAME_HEIGHT, IS_PORTRAIT } from '../config.js';
 
 export default class MainScene extends Phaser.Scene {
   constructor() {
@@ -9,6 +9,8 @@ export default class MainScene extends Phaser.Scene {
   create() {
     this.manifest  = this.registry.get('manifest');
     this.symbolMap = this.registry.get('symbolMap');
+    // Reescribimos las posiciones del layout para la orientación actual del canvas.
+    this._applyResponsiveLayout();
     this.balance   = this.manifest.gameplay.initialBalance;
     this.tiles     = [];
     this.revealedCount = 0;
@@ -47,6 +49,30 @@ export default class MainScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-L', () => { this._forcedOutcome = 'lose'; console.log('[DEBUG] Próxima jugada forzada a LOSE'); });
     this.input.keyboard.on('keydown-N', () => { this._forcedOutcome = 'none'; console.log('[DEBUG] Próxima jugada forzada a NONE'); });
     this.input.keyboard.on('keydown-R', () => { this._forcedOutcome = null;   console.log('[DEBUG] Resultado aleatorio (normal)'); });
+  }
+
+  // ---------- RESPONSIVE LAYOUT ----------
+  // El manifest define posiciones para 1320x720 (landscape). En portrait el canvas
+  // mide 720x1280, por lo tanto reescribimos las posiciones de UI para que el
+  // tablero quede centrado verticalmente y la HUD se acomode arriba/abajo.
+  _applyResponsiveLayout() {
+    if (!IS_PORTRAIT) return;
+    const cx = GAME_WIDTH  / 2; // 360
+    const cy = GAME_HEIGHT / 2; // 640
+    const lay = this.manifest.layout;
+    // tablero centrado en el canvas
+    lay.background = { x: cx, y: cy, scale: 1 };
+    lay.board      = { x: cx, y: cy, width: lay.board.width, height: lay.board.height };
+    // HUD arriba del tablero
+    const topY = cy - lay.board.height / 2 - 40; // ~270
+    lay.balance   = { x: cx - 120, y: topY };
+    lay.soundIcon = { x: cx + 120, y: topY };
+    // HUD debajo del tablero
+    const botY = cy + lay.board.height / 2 + 40; // ~1010
+    lay.playNumber = { x: cx,        y: botY };
+    lay.infoIcon   = { x: cx + 140,  y: botY };
+    // botón jugar al centro del tablero (mismo offset visual que landscape)
+    lay.playButton = { x: cx, y: cy + 30 };
   }
 
   // ---------- BUILDERS ----------
@@ -157,7 +183,9 @@ export default class MainScene extends Phaser.Scene {
   buildOverlay() {
     // Overlay entre el inicio del tablero y la mitad de la primera fila de fichas.
     // Más alto, extendiéndose hacia arriba.
-    this.overlay = this.add.container(GAME_WIDTH / 2, 115).setVisible(false);
+    const ovBoard = this.manifest.layout.board;
+    const overlayY = ovBoard.y - ovBoard.height / 2 + 85;
+    this.overlay = this.add.container(ovBoard.x, overlayY).setVisible(false);
     this.overlayBg = this._img(0, 0, 'winFrame', 340, 140);
     this.overlayLabel = this.add.text(0, -50, '', {
       fontFamily: 'Arial Black', fontSize: 16, color: '#ffffff',
